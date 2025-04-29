@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --navy-blue: #001f3f;
+            --metal-silver: #c0c0c0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-navy-blue text-white p-4 shadow-md backdrop-blur-md">
+        <h1 class="text-2xl font-bold">San'merce Transactions</h1>
+    </header>
+
+    <main class="p-6 max-w-4xl mx-auto">
+        <h2 class="text-xl font-semibold mb-4 text-navy-blue">Transaction History</h2>
+        <table class="min-w-full bg-white shadow-md rounded-lg">
+            <thead class="bg-navy-blue text-white">
+                <tr>
+                    <th class="py-2 px-4">Date</th>
+                    <th class="py-2 px-4">Product</th>
+                    <th class="py-2 px-4">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Example Row -->
+                <tr class="border-b">
+                    <td class="py-2 px-4">2025-04-29</td>
+                    <td class="py-2 px-4">Example Product</td>
+                    <td class="py-2 px-4">$99.99</td>
+                </tr>
+                <!-- Repeat Rows as needed -->
+            </tbody>
+        </table>
+    </main>
+
+    <footer class="bg-navy-blue text-metal-silver text-center p-4 mt-8">
+        <p>&copy; 2025 San'merce. All rights reserved.</p>
+    </footer>
+</body>
+</html>
