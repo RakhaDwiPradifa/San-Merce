@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #001f3f;
+            --yellow: #ffc107;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--navy);
+            color: var(--white);
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-yellow text-navy p-4 shadow-md">
+        <nav class="flex justify-between items-center container mx-auto">
+            <h1 class="text-3xl font-bold">San'merce Transactions</h1>
+            <ul class="flex space-x-6">
+                <li><a href="/" class="hover:underline">Home</a></li>
+                <li><a href="/checkout" class="hover:underline">Checkout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-6">
+        <h2 class="text-2xl font-semibold mb-6">Your Transactions</h2>
+        <table class="bg-white bg-opacity-10 backdrop-blur-md shadow-lg rounded-lg w-full">
+            <thead class="bg-yellow text-navy">
+                <tr>
+                    <th class="p-4 text-left">Date</th>
+                    <th class="p-4 text-left">Product</th>
+                    <th class="p-4 text-left">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="border-b">
+                    <td class="p-4">April 29, 2025</td>
+                    <td class="p-4">Product A</td>
+                    <td class="p-4 text-yellow">$50</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="p-4">April 28, 2025</td>
+                    <td class="p-4">Product B</td>
+                    <td class="p-4 text-yellow">$30</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+
+    <footer class="bg-yellow text-navy text-center p-4 absolute bottom-0 w-full">
+        <p>&copy; 2025 San'merce. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const authToken = localStorage.getItem('authToken');
+            if (!authToken) {
+                alert('You must be logged in to access this page.');
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch('/transactions', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch transactions');
+                }
+
+                const transactions = await response.json();
+                const tableBody = document.querySelector('tbody');
+                tableBody.innerHTML = transactions.map(transaction => `
+                    <tr class="border-b">
+                        <td class="p-4">${transaction.date}</td>
+                        <td class="p-4">${transaction.product}</td>
+                        <td class="p-4 text-yellow">$${transaction.amount}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                alert('Error loading transactions. Please try again.');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const authToken = localStorage.getItem('authToken');
+            const logoutButton = document.createElement('button');
+            logoutButton.textContent = 'Logout';
+            logoutButton.className = 'bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700';
+            logoutButton.addEventListener('click', () => {
+                localStorage.removeItem('authToken');
+                alert('You have been logged out.');
+                window.location.href = '/login';
+            });
+
+            if (authToken) {
+                const nav = document.querySelector('nav ul');
+                const li = document.createElement('li');
+                li.appendChild(logoutButton);
+                nav.appendChild(li);
+            }
+        });
+    </script>
+</body>
+</html>

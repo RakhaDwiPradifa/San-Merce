@@ -7,8 +7,15 @@ CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) NOT NULL
 );
+
+-- Ensure proper structure for sensitive data
+ALTER TABLE users MODIFY COLUMN name VARCHAR(255) NOT NULL;
+ALTER TABLE users MODIFY COLUMN address VARCHAR(255) NOT NULL;
+ALTER TABLE users MODIFY COLUMN phone VARCHAR(255) NOT NULL;
 
 -- Create transactions table
 CREATE TABLE IF NOT EXISTS transactions (

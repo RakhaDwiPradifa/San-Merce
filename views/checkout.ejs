@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #001f3f;
+            --yellow: #ffc107;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--navy);
+            color: var(--white);
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-yellow text-navy p-4 shadow-md">
+        <nav class="flex justify-between items-center container mx-auto">
+            <h1 class="text-3xl font-bold">San'merce Checkout</h1>
+            <ul class="flex space-x-6">
+                <li><a href="/" class="hover:underline">Home</a></li>
+                <li><a href="/transactions" class="hover:underline">Transactions</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-6">
+        <h2 class="text-2xl font-semibold mb-6">Checkout</h2>
+        <form class="bg-white bg-opacity-10 backdrop-blur-md shadow-lg rounded-lg p-6 space-y-4">
+            <div>
+                <label for="name" class="block font-semibold">Name</label>
+                <input type="text" id="name" class="w-full p-2 border border-gray-300 rounded bg-transparent text-white" placeholder="Enter your name">
+            </div>
+            <div>
+                <label for="address" class="block font-semibold">Address</label>
+                <textarea id="address" class="w-full p-2 border border-gray-300 rounded bg-transparent text-white" placeholder="Enter your address"></textarea>
+            </div>
+            <div>
+                <label for="payment" class="block font-semibold">Payment Method</label>
+                <select id="payment" class="w-full p-2 border border-gray-300 rounded bg-transparent text-white">
+                    <option value="credit">Credit Card</option>
+                    <option value="paypal">PayPal</option>
+                </select>
+            </div>
+            <button type="submit" class="bg-yellow text-navy px-4 py-2 rounded hover:bg-opacity-90">Place Order</button>
+        </form>
+    </main>
+
+    <footer class="bg-yellow text-navy text-center p-4 absolute bottom-0 w-full">
+        <p>&copy; 2025 San'merce. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const authToken = localStorage.getItem('authToken');
+            if (!authToken) {
+                alert('You must be logged in to access this page.');
+                window.location.href = '/login';
+                return;
+            }
+
+            const form = document.querySelector('form');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                try {
+                    const response = await fetch('/transactions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`,
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    const result = await response.text();
+                    document.body.innerHTML = result;
+                } catch (error) {
+                    alert('Error processing transaction. Please try again.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

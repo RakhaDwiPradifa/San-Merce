@@ -11,7 +11,7 @@ router.get('/data', (req, res) => {
 })
 
 router.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend', 'dashboard.html'));
+    res.sendFile(path.join(__dirname, '../views', 'dashboard.html'));
 });
 
 

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #001f3f;
+            --yellow: #ffc107;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--navy);
+            color: var(--white);
+        }
+    </style>
+</head>
+<body class="bg-navy">
+    <header class="bg-yellow text-navy p-4 shadow-md">
+        <nav class="flex justify-between items-center container mx-auto">
+            <h1 class="text-3xl font-bold">San'merce Dashboard</h1>
+            <ul class="flex space-x-6">
+                <li><a href="/" class="hover:underline">Home</a></li>
+                <% if (token) { %>
+                  <li><a href="/checkout" class="hover:underline">Checkout</a></li>
+                  <li><a href="/transactions" class="hover:underline">Transaction</a></li>
+                  <li><a href="/auth/logout" class="hover:underline">Logout</a></li>
+                <% } else { %>
+                  <li><a href="/login" class="hover:underline">Login</a></li>
+                  <li><a href="/register" class="hover:underline">Register</a></li>
+                <% } %>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-6">
+        <h2 class="text-2xl font-semibold mb-6">Our Products</h2>
+        <p class="mb-4">Welcome back! Here are the products available for you.</p>
+            <% if (products && products.length > 0) { %>
+                <% products.forEach(product => { %>
+                    <div class="bg-white max-w-[300px] bg-opacity-10 backdrop-blur-md shadow-lg rounded-lg overflow-hidden">
+                        <img src="<%= product.image %>" alt="<%= product.name %>" class="w-full h-40 object-cover">
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold"><%= product.name %></h3>
+                            <p class="text-yellow font-bold"><%= product.price %></p>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <p class="text-gray-500 col-span-full text-center">No products available at the moment.</p>
+            <% } %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        </div>
+    </main>
+
+    <footer class="bg-yellow text-navy text-center p-4 absolute bottom-0 w-full">
+        <p>&copy; 2025 San'merce. All rights reserved.</p>
+    </footer>
+
+    
+</body>
+</html>

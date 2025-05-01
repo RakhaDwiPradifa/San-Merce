@@ -3,15 +3,18 @@ const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const path = require('path');
 const crypto = require('crypto');
-const authRoutes = require('./routes/auth');
+const { router: authRoutes } = require('./routes/auth');
 const checkoutRoutes = require('./routes/checkout');
 const transactionsRoutes = require('./routes/transactions');
 const products = require('./routes/product');
-
+const cookieParser = require('cookie-parser');
+const db = require('./backend/db');
 // Load environment variables
 dotenv.config();
 
 const app = express();
+app.use(cookieParser());
+app.set('view engine', 'ejs')
 const PORT = process.env.PORT || 3000;
 
 // AES-256 encryption and decryption utilities
@@ -48,8 +51,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files from the frontend folder
-app.use(express.static(path.join(__dirname, 'frontend')));
+// Serve static files from the views folder
+app.use(express.static(path.join(__dirname, 'views')));
 
 // Routes
 app.use('/auth', authRoutes);
@@ -59,23 +62,19 @@ app.use('/products', products);
 
 // Route to serve specific HTML files
 app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'login.html'));
+  res.render('login', { title: 'Login', token: null });
 });
 
 app.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'register.html'));
+  res.render('register', { title: 'Register', token: null });
 });
 
 app.get('/checkout', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'checkout.html'));
+  res.render('checkout', { title: 'Checkout', token: null });
 });
 
 app.get('/transactions', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'transactions.html'));
-});
-
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'dashboard.html'));
+  res.render('transactions', { title: 'Transactions', token: null });
 });
 
 // Example route to demonstrate decryption
@@ -91,7 +90,23 @@ app.post('/process-payment', (req, res) => {
 
 // Root endpoint
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'dashboard.html'));
+   // Get token from cookies
+  const token = req.cookies.token || null;
+  console.log('Token:', token);
+  
+
+  db.query('SELECT * FROM products', (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    res.render('dashboard', {
+      title: 'Dashboard',
+      products: results || [], // Make sure products is always defined
+      token
+    });
+  });
 });
 
 // Start the server

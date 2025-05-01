@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #001f3f;
+            --yellow: #ffc107;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--navy);
+            color: var(--white);
+        }
+    </style>
+</head>
+<body class="bg-navy">
+    <header class="bg-yellow text-navy p-4 shadow-md">
+        <nav class="flex justify-between items-center container mx-auto">
+            <h1 class="text-3xl font-bold">San'merce Register</h1>
+            <ul class="flex space-x-6">
+                <li><a href="/" class="hover:underline">Home</a></li>
+                <li><a href="/login" class="hover:underline">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="flex items-center justify-center min-h-screen">
+        <div class="bg-white bg-opacity-10 backdrop-blur-md shadow-lg rounded-lg p-8 w-full max-w-md">
+            <h2 class="text-2xl font-semibold mb-6 text-center">Create Your Account</h2>
+            <form class="space-y-4">
+                <div>
+                    <label for="name" class="block font-semibold">Name</label>
+                    <input type="text" id="name" name="name" class="w-full p-2 border border-gray-300 rounded bg-transparent text-white" placeholder="Enter your name">
+                </div>
+                <div>
+                    <label for="email" class="block font-semibold">Email</label>
+                    <input type="email" id="email" name="email" class="w-full p-2 border border-gray-300 rounded bg-transparent text-white" placeholder="Enter your email">
+                </div>
+                <div>
+                    <label for="password" class="block font-semibold">Password</label>
+                    <input type="password" id="password" name="password" class="w-full p-2 border border-gray-300 rounded bg-transparent text-white" placeholder="Enter your password">
+                </div>
+                <div>
+                    <label for="address" class="block font-semibold">Address</label>
+                    <textarea id="address" name="address" class="w-full p-2 border border-gray-300 rounded bg-transparent text-white" placeholder="Enter your address"></textarea>
+                </div>
+                <div>
+                    <label for="phone" class="block font-semibold">Phone</label>
+                    <input type="text" id="phone" name="phone" class="w-full p-2 border border-gray-300 rounded bg-transparent text-white" placeholder="Enter your phone number">
+                </div>
+                <button type="submit" class="bg-yellow text-navy px-4 py-2 rounded hover:bg-opacity-90 w-full">Register</button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="bg-yellow text-navy text-center p-4 absolute bottom-0 w-full">
+        <p>&copy; 2025 San'merce. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('form');
+            form.addEventListener('submit', (event) => {
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const address = document.getElementById('address').value;
+                const phone = document.getElementById('phone').value;
+
+                if (!name || !email || !password || !address || !phone) {
+                    event.preventDefault();
+                    alert('All fields are required!');
+                }
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                try {
+                    const response = await fetch('/auth/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    const result = await response.text();
+                    document.body.innerHTML = result;
+
+                    const popup = document.createElement('div');
+                    popup.textContent = response.ok ? 'Registration successful! Redirecting to dashboard...' : 'Registration failed. Please try again.';
+                    popup.style.position = 'fixed';
+                    popup.style.top = '50%';
+                    popup.style.left = '50%';
+                    popup.style.transform = 'translate(-50%, -50%)';
+                    popup.style.backgroundColor = '#ffc107';
+                    popup.style.color = '#001f3f';
+                    popup.style.padding = '20px';
+                    popup.style.borderRadius = '10px';
+                    popup.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                    popup.style.animation = 'fadeInOut 3s ease-in-out';
+
+                    document.body.appendChild(popup);
+
+                    if (response.ok) {
+                        setTimeout(() => {
+                            popup.remove();
+                            window.location.href = '/dashboard';
+                        }, 3000);
+                    } else {
+                        setTimeout(() => popup.remove(), 3000);
+                    }
+                } catch (error) {
+                    const popup = document.createElement('div');
+                    popup.textContent = 'Error during registration. Please try again.';
+                    popup.style.position = 'fixed';
+                    popup.style.top = '50%';
+                    popup.style.left = '50%';
+                    popup.style.transform = 'translate(-50%, -50%)';
+                    popup.style.backgroundColor = '#ff4d4d';
+                    popup.style.color = '#ffffff';
+                    popup.style.padding = '20px';
+                    popup.style.borderRadius = '10px';
+                    popup.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                    popup.style.animation = 'fadeInOut 3s ease-in-out';
+
+                    document.body.appendChild(popup);
+                    setTimeout(() => popup.remove(), 3000);
+                }
+            });
+        });
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: translate(-50%, -60%); }
+                50% { opacity: 1; transform: translate(-50%, -50%); }
+                100% { opacity: 0; transform: translate(-50%, -40%); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
