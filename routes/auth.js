@@ -48,7 +48,9 @@ function decrypt(encryptedText) {
 }
 
 const authenticateToken = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1];
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
     if (!token) {
         return res.status(401).send('<script>alert("Access denied. Please login first."); window.location.href="/login";</script>');
     }
@@ -66,30 +68,22 @@ const authenticateToken = (req, res, next) => {
 router.post('/register', async (req, res) => {
     const { name, email, password, address, phone } = req.body;
 
-    console.log('Register request received:', req.body);
-
     if (!name || !email || !password || !address || !phone) {
         return res.status(400).send('<script>alert("All fields are required"); window.location.href="/register";</script>');
     }
 
+    // Encrypt sensitive data before saving to the database
+    const encryptedName = encrypt(name);
+    const encryptedAddress = encrypt(address);
+    const encryptedPhone = encrypt(phone);
+    // password 
+    const encryptedPassword = encrypt(password);
+    // card number and cvv
+    const encryptedCardNumber = encrypt(req.body.cardNumber);
+    const encryptedCvv = encrypt(req.body.cvv);
+
     try {
-        console.log('Encrypting name:', name);
-        console.log('Encrypting address:', address);
-        console.log('Encrypting phone:', phone);
-
         const hashedPassword = await bcrypt.hash(password, 10);
-        const encryptedName = encrypt(name);
-        const encryptedAddress = encrypt(address);
-        const encryptedPhone = encrypt(phone);
-
-        if (!encryptedName || !encryptedAddress || !encryptedPhone) {
-            console.error('Encryption failed for one or more fields:', {
-                name: encryptedName,
-                address: encryptedAddress,
-                phone: encryptedPhone
-            });
-            return res.status(500).send('<script>alert("Error encrypting data"); window.location.href="/register";</script>');
-        }
 
         db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
             if (err) {
@@ -101,9 +95,9 @@ router.post('/register', async (req, res) => {
             }
 
             // If email is unique, proceed with registration
-            db.query('INSERT INTO users (name, email, password, address, phone) VALUES (?, ?, ?, ?, ?)', [encryptedName, email, hashedPassword, encryptedAddress, encryptedPhone], (err) => {
+            db.query('INSERT INTO users (name, email, password, address, phone, cardNumber, cvv) VALUES (?, ?, ?, ?, ?, ?, ?)', [encryptedName, email, encryptedPassword, encryptedAddress, encryptedPhone, encryptedCardNumber, encryptedCvv], (err) => {
                 if (err) throw err;
-                res.status(201).send('<script>alert("User registered successfully"); window.location.href="/login";</script>');
+                res.status(201).send('<script>window.location.href="/login?showAlert=true";</script>');
             });
         });
     } catch (err) {
@@ -114,28 +108,18 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', (req, res) => {
     const { email, password } = req.body;
-    
 
-    db.query('SELECT id, name, email, password, address, phone FROM users WHERE email = ?', [email], (err, results) => {
+    db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
         if (err) {
             console.error('Error during user login:', err);
             return res.status(500).send('<script>alert("Internal server error"); window.location.href="/login";</script>');
         }
 
         if (results.length === 0) {
-            console.log('No user found with email:', email);
             return res.status(401).send('<script>alert("Invalid credentials"); window.location.href="/login";</script>');
         }
 
         const user = results[0];
-        // console.log('User found:', results); // Log user data before decryption
-        // user.name = decrypt(user.name);
-        // user.address = decrypt(user.address);
-        // user.phone = decrypt(user.phone); 
-        console.log('Decrypted user data:', decrypt(user.name)); // Log decrypted user data
-        
-
-        // console.log('User found:', user); // Log user data after decryption
 
         bcrypt.compare(password, user.password, (err, isMatch) => {
             if (err) {
@@ -144,15 +128,15 @@ router.post('/login', (req, res) => {
             }
 
             if (!isMatch) {
-                console.log('Password mismatch for user:', email);
                 return res.status(401).send('<script>alert("Invalid credentials"); window.location.href="/login";</script>');
             }
 
             const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-            // redirect to dashboard with token
+            // Redirect to dashboard with token
             res.cookie('token', token);
-            res.redirect('/');
+            res.cookie('user', user); // Store user ID in a cookie
+            res.redirect('/?showAlert=true'); // Redirect to dashboard with alert
         });
     });
 });

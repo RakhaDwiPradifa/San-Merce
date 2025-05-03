@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../backend/db');
 const crypto = require('crypto');
 const { authenticateToken } = require('./auth');
+const { join } = require('path');
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY; // Must be 32 characters
 const IV_LENGTH = 16; // For AES, this is always 16
@@ -43,15 +44,22 @@ function decrypt(text) {
     }
 }
 
-// Middleware to encrypt sensitive data before saving to the database
-router.post('/transactions', authenticateToken, (req, res) => {
-    const { productId, quantity } = req.body;
-    const userId = req.user.id;
+// Middleware to save transactions without encryption for product_id and quantity
+// Added validation to ensure productId is provided
+router.post('/', (req, res) => {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.status(401).send('<script>alert("Unauthorized"); window.location.href="/login";</script>');
+    }
+    const { productId, userId } = req.body;
 
-    const encryptedProductId = encrypt(productId.toString());
-    const encryptedQuantity = encrypt(quantity.toString());
+    let currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-    db.query('INSERT INTO transactions (user_id, product_id, quantity) VALUES (?, ?, ?)', [userId, encryptedProductId, encryptedQuantity], (err) => {
+    if (!productId || !userId) {
+        return res.status(400).send('<script>alert("All fields are required"); window.location.href="/checkout";</script>');
+    }
+
+    db.query('INSERT INTO transactions (user_id, product_id, transaction_date) VALUES (?, ?, ?)', [userId, productId, currentDate], (err) => {
         if (err) {
             return res.status(500).send('<script>alert("Error processing transaction"); window.location.href="/checkout";</script>');
         }
@@ -59,23 +67,44 @@ router.post('/transactions', authenticateToken, (req, res) => {
     });
 });
 
-// Middleware to decrypt sensitive data when retrieving from the database
-router.get('/transactions', authenticateToken, (req, res) => {
-    const userId = req.user.id;
-
-    db.query('SELECT * FROM transactions WHERE user_id = ?', [userId], (err, results) => {
+// Middleware to retrieve transactions without decryption
+router.get('/', (req, res) => {
+    const userId = req.cookies.user.id;
+    const token = req.cookies.token;
+    if (!token) {
+        return res.status(401).send('<script>alert("Unauthorized"); window.location.href="/login";</script>');
+    }
+    db.query(`
+        SELECT 
+            transactions.id,
+            transactions.user_id,
+            transactions.product_id,
+            transactions.transaction_date,
+            users.name AS user_name,
+            products.name AS product_name,
+            products.price AS product_price
+        FROM transactions
+        JOIN users ON users.id = transactions.user_id
+        JOIN products ON products.id = transactions.product_id
+        WHERE transactions.user_id = ?
+    `, [userId], (err, results) => {
         if (err) {
             return res.status(500).send('<script>alert("Error fetching transactions"); window.location.href="/dashboard";</script>');
         }
-
-        const decryptedResults = results.map(transaction => ({
-            ...transaction,
-            product_id: decrypt(transaction.product_id),
-            quantity: decrypt(transaction.quantity)
-        }));
-
-        res.json(decryptedResults);
+        const response = {
+            title: 'Transaction History',
+            transactions: results.map(transaction => ({
+                ...transaction,
+                transaction_date: new Date(transaction.transaction_date).toLocaleString(),
+                product_price: parseFloat(transaction.product_price).toFixed(2),
+                userId: userId,
+                userName: decrypt(req.cookies.user.name)
+            })),
+        };
+        let transactions = response.transactions;
+        res.render('transactions', {transactions});
     });
+    
 });
 
 // Transaction history

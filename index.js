@@ -14,12 +14,12 @@ dotenv.config();
 
 const app = express();
 app.use(cookieParser());
-app.set('view engine', 'ejs')
+app.set('view engine', 'ejs');
 const PORT = process.env.PORT || 3000;
 
 // AES-256 encryption and decryption utilities
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY; // Must be 32 characters
-const IV_LENGTH = 16; // For AES, this is always 16
+const IV_LENGTH = 16;
 
 function encrypt(text) {
   const iv = crypto.randomBytes(IV_LENGTH);
@@ -51,7 +51,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files from the views folder
+// Serve static files from views folder
 app.use(express.static(path.join(__dirname, 'views')));
 
 // Routes
@@ -60,41 +60,66 @@ app.use('/checkout', checkoutRoutes);
 app.use('/transactions', transactionsRoutes);
 app.use('/products', products);
 
-// Route to serve specific HTML files
+// Middleware: protect route if not logged in
+function requireLogin(req, res, next) {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.redirect('/login');
+  }
+  next();
+}
+
+// Route to serve HTML views
 app.get('/login', (req, res) => {
-  res.render('login', { title: 'Login', token: null });
+  const showAlert = req.query.showAlert === 'true';
+  res.render('login', { title: 'Login', token: null, showAlert });
 });
 
 app.get('/register', (req, res) => {
   res.render('register', { title: 'Register', token: null });
 });
 
-app.get('/checkout', (req, res) => {
-  res.render('checkout', { title: 'Checkout', token: null });
+// Checkout route (protected)
+app.get('/checkout', requireLogin, (req, res) => {
+  const token = req.cookies.token;
+  const productId = req.query.productId;
+
+  if (!productId) {
+    return res.status(400).send('Product ID is required');
+  }
+
+  db.query('SELECT * FROM products WHERE id = ?', [productId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('Product not found');
+    }
+
+    res.render('checkout', {
+      title: 'Checkout',
+      token,
+      product: results[0]
+    });
+  });
 });
 
-app.get('/transactions', (req, res) => {
-  res.render('transactions', { title: 'Transactions', token: null });
-});
-
-// Example route to demonstrate decryption
+// Example encrypted data handler
 app.post('/process-payment', (req, res) => {
   if (req.body && req.body.sensitiveData) {
     const decryptedData = decrypt(req.body.sensitiveData);
-    // Process the decrypted data (e.g., payment processing)
     res.send(`Processed data: ${decryptedData}`);
   } else {
     res.status(400).send('No sensitive data provided');
   }
 });
 
-// Root endpoint
+// Root route
 app.get('/', (req, res) => {
-   // Get token from cookies
   const token = req.cookies.token || null;
-  console.log('Token:', token);
-  
-
+  const showAlert = req.query.showAlert === 'true';
   db.query('SELECT * FROM products', (err, results) => {
     if (err) {
       console.error('Database error:', err);
@@ -103,13 +128,14 @@ app.get('/', (req, res) => {
 
     res.render('dashboard', {
       title: 'Dashboard',
-      products: results || [], // Make sure products is always defined
-      token
+      products: results || [],
+      token,
+      showAlert,
     });
   });
-});
+}); 
 
-// Start the server
+// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

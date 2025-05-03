@@ -33,25 +33,27 @@
 
     <main class="container mx-auto p-6">
         <h2 class="text-2xl font-semibold mb-6">Your Transactions</h2>
+       
         <table class="bg-white bg-opacity-10 backdrop-blur-md shadow-lg rounded-lg w-full">
             <thead class="bg-yellow text-navy">
                 <tr>
+                    <th class="p-4 text-left">Transaction ID</th>
+                    <th class="p-4 text-left">User</th>
                     <th class="p-4 text-left">Date</th>
                     <th class="p-4 text-left">Product</th>
                     <th class="p-4 text-left">Amount</th>
                 </tr>
             </thead>
             <tbody>
-                <tr class="border-b">
-                    <td class="p-4">April 29, 2025</td>
-                    <td class="p-4">Product A</td>
-                    <td class="p-4 text-yellow">$50</td>
-                </tr>
-                <tr class="border-b">
-                    <td class="p-4">April 28, 2025</td>
-                    <td class="p-4">Product B</td>
-                    <td class="p-4 text-yellow">$30</td>
-                </tr>
+                <% transactions.forEach(transaction => { %>
+                    <tr class="border-b border-gray-300">
+                        <td class="p-4"><%= transaction.id %></td>
+                        <td class="p-4"><%= transaction.userName %></td>
+                        <td class="p-4"><%= transaction.transaction_date %></td>
+                        <td class="p-4"><%= transaction.product_name %></td>
+                        <td class="p-4">Rp <%= Number(transaction.product_price).toLocaleString('id-ID') %></td>
+                    </tr>
+                <% }) %>
             </tbody>
         </table>
     </main>
@@ -60,7 +62,7 @@
         <p>&copy; 2025 San'merce. All rights reserved.</p>
     </footer>
 
-    <script>
+    <!-- <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const authToken = localStorage.getItem('authToken');
             if (!authToken) {
@@ -85,18 +87,15 @@
                 const tableBody = document.querySelector('tbody');
                 tableBody.innerHTML = transactions.map(transaction => `
                     <tr class="border-b">
-                        <td class="p-4">${transaction.date}</td>
-                        <td class="p-4">${transaction.product}</td>
-                        <td class="p-4 text-yellow">$${transaction.amount}</td>
+                        <td class="p-4">${new Date(transaction.transaction_date).toLocaleDateString()}</td>
+                        <td class="p-4">${transaction.product_id}</td>
+                        <td class="p-4 text-yellow">$${transaction.amount || 'N/A'}</td>
                     </tr>
                 `).join('');
             } catch (error) {
                 alert('Error loading transactions. Please try again.');
             }
-        });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const authToken = localStorage.getItem('authToken');
             const logoutButton = document.createElement('button');
             logoutButton.textContent = 'Logout';
             logoutButton.className = 'bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700';
@@ -106,13 +105,11 @@
                 window.location.href = '/login';
             });
 
-            if (authToken) {
-                const nav = document.querySelector('nav ul');
-                const li = document.createElement('li');
-                li.appendChild(logoutButton);
-                nav.appendChild(li);
-            }
+            const nav = document.querySelector('nav ul');
+            const li = document.createElement('li');
+            li.appendChild(logoutButton);
+            nav.appendChild(li);
         });
-    </script>
+    </script> -->
 </body>
 </html>

@@ -34,7 +34,7 @@
     <main class="flex items-center justify-center min-h-screen">
         <div class="bg-white bg-opacity-10 backdrop-blur-md shadow-lg rounded-lg p-8 w-full max-w-md">
             <h2 class="text-2xl font-semibold mb-6 text-center">Login to Your Account</h2>
-            <form class="space-y-4">
+            <form action="auth/login" method="POST" class="space-y-4">
                 <div>
                     <label for="email" class="block font-semibold">Email</label>
                     <input type="email" id="email" name="email" class="w-full p-2 border border-gray-300 rounded bg-transparent text-white" placeholder="Enter your email">
@@ -51,8 +51,8 @@
     <footer class="bg-yellow text-navy text-center p-4 absolute bottom-0 w-full">
         <p>&copy; 2025 San'merce. All rights reserved.</p>
     </footer>
-
-    <script>
+   
+    <!-- <script>
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.querySelector('form');
             form.addEventListener('submit', async (e) => {
@@ -116,6 +116,16 @@
             }
         `;
         document.head.appendChild(style);
-    </script>
+    </script> -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <% if (showAlert) { %>
+        <script>
+          Swal.fire({
+            title: 'Register Berhasil!',
+            text: 'Silakan Login!',
+            icon: 'success'
+          });
+        </script>
+      <% } %>
 </body>
 </html>
